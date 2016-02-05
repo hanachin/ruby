@@ -2014,7 +2014,14 @@ op		: '|'		{ ifndef_ripper($$ = '|'); }
 		| '`'		{ ifndef_ripper($$ = '`'); }
 		;
 
-reduction_op	: tLBRACK op ']'	{ $$ = $2; }
+reduction_op	: tLBRACK tPOW ']'
+		    {
+			$$ = idPow;
+		    }
+		| tLBRACK op ']'
+		    {
+			$$ = $2;
+		    }
 		;
 
 reswords	: keyword__LINE__ | keyword__FILE__ | keyword__ENCODING__
@@ -8215,6 +8222,11 @@ parser_yylex(struct parser_params *parser)
 	return '\n';
 
       case '*':
+	if (peek('*') && peek_n(']', 1)) {
+	    nextc();
+	    SET_LEX_STATE(EXPR_BEG);
+	    return tPOW;
+	}
 	if ((c = nextc()) == '*') {
 	    if ((c = nextc()) == '=') {
                 set_yylval_id(tPOW);
@@ -8591,7 +8603,7 @@ parser_yylex(struct parser_params *parser)
 	return tSYMBEG;
 
       case '/':
-	if (IS_BEG()) {
+	if (IS_BEG() && !(peek(']') && peek_n('[', -2))) {
 	    lex_strterm = NEW_STRTERM(str_regexp, '/', 0);
 	    return tREGEXP_BEG;
 	}
