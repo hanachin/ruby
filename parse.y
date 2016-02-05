@@ -8530,6 +8530,9 @@ parser_yylex(struct parser_params *parser)
 	    if (c != -1 && ISDIGIT(c)) {
 		return tUMINUS_NUM;
 	    }
+	    if (c == ']') {
+		return '-';
+	    }
 	    return tUMINUS;
 	}
 	SET_LEX_STATE(EXPR_BEG);
