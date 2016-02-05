@@ -2420,7 +2420,7 @@ arg		: lhs '=' arg
 			$$ = dispatch3(ifop, $1, $3, $6);
 		    %*/
 		    }
-		| reduction_op aref_args
+		| reduction_op call_args
 		    {
 		    /*%%%*/
 			$$ = NEW_CALL($2, rb_intern("inject"), NEW_LIST(NEW_LIT(ID2SYM($1))));
