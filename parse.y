@@ -8728,6 +8728,9 @@ parser_yylex(struct parser_params *parser)
 	return '\\';
 
       case '%':
+	if (IS_BEG() && peek_n('[', -2) && peek(']')) {
+	    return '%';
+	}
 	return parse_percent(parser, space_seen, last_state);
 
       case '$':
