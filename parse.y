@@ -909,6 +909,16 @@ static void token_info_pop(struct parser_params*, const char *token, size_t len)
 %token tLAMBDA		"->"
 %token tSYMBEG tSTRING_BEG tXSTRING_BEG tREGEXP_BEG tWORDS_BEG tQWORDS_BEG tSYMBOLS_BEG tQSYMBOLS_BEG
 %token tSTRING_DBEG tSTRING_DEND tSTRING_DVAR tSTRING_END tLAMBEG tLABEL_END
+%token tRED_PLUS	"+"
+%token tRED_MINUS	"-"
+%token tRED_MULTI	"*"
+%token tRED_DIV		"/"
+%token tRED_MOD		"%"
+%token tRED_OR		"|"
+%token tRED_XOR		"^"
+%token tRED_AND		"&"
+%token tRED_GT		">"
+%token tRED_LT		"<"
 
 /*
  *	precedence table
@@ -937,6 +947,16 @@ static void token_info_pop(struct parser_params*, const char *token, size_t len)
 %right tUMINUS_NUM tUMINUS
 %right tPOW
 %right '!' '~' tUPLUS
+%left  tRED_PLUS
+%left  tRED_MINUS
+%left  tRED_MULTI
+%left  tRED_DIV
+%left  tRED_MOD
+%left  tRED_OR
+%left  tRED_XOR
+%left  tRED_AND
+%left  tRED_GT
+%left  tRED_LT
 
 %token tLAST_TOKEN
 
@@ -3760,6 +3780,87 @@ method_call	: fcall paren_args
 		    /*%
 			$$ = dispatch0(zsuper);
 		    %*/
+		    }
+
+		| primary_value tRED_PLUS
+		    {
+			/*%%%*/
+			$$ = NEW_CALL($1, rb_intern("inject"), NEW_LIST(NEW_LIT(ID2SYM('+'))));
+			/*%
+			$$ = $1;
+			%*/
+		    }
+		| primary_value tRED_MINUS
+		    {
+			/*%%%*/
+			$$ = NEW_CALL($1, rb_intern("inject"), NEW_LIST(NEW_LIT(ID2SYM('-'))));
+			/*%
+			$$ = $1;
+			%*/
+		    }
+		| primary_value tRED_MULTI
+		    {
+			/*%%%*/
+			$$ = NEW_CALL($1, rb_intern("inject"), NEW_LIST(NEW_LIT(ID2SYM('*'))));
+			/*%
+			$$ = $1;
+			%*/
+		    }
+		| primary_value tRED_DIV
+		    {
+			/*%%%*/
+			$$ = NEW_CALL($1, rb_intern("inject"), NEW_LIST(NEW_LIT(ID2SYM('/'))));
+			/*%
+			$$ = $1;
+			%*/
+		    }
+		| primary_value tRED_MOD
+		    {
+			/*%%%*/
+			$$ = NEW_CALL($1, rb_intern("inject"), NEW_LIST(NEW_LIT(ID2SYM('%'))));
+			/*%
+			$$ = $1;
+			%*/
+		    }
+		| primary_value tRED_OR
+		    {
+			/*%%%*/
+			$$ = NEW_CALL($1, rb_intern("inject"), NEW_LIST(NEW_LIT(ID2SYM('|'))));
+			/*%
+			$$ = $1;
+			%*/
+		    }
+		| primary_value tRED_XOR
+		    {
+			/*%%%*/
+			$$ = NEW_CALL($1, rb_intern("inject"), NEW_LIST(NEW_LIT(ID2SYM('^'))));
+			/*%
+			$$ = $1;
+			%*/
+		    }
+		| primary_value tRED_AND
+		    {
+			/*%%%*/
+			$$ = NEW_CALL($1, rb_intern("inject"), NEW_LIST(NEW_LIT(ID2SYM('&'))));
+			/*%
+			$$ = $1;
+			%*/
+		    }
+		| primary_value tRED_GT
+		    {
+			/*%%%*/
+			$$ = NEW_CALL($1, rb_intern("inject"), NEW_LIST(NEW_LIT(ID2SYM('<'))));
+			/*%
+			$$ = $1;
+			%*/
+		    }
+		| primary_value tRED_LT
+		    {
+			/*%%%*/
+			$$ = NEW_CALL($1, rb_intern("inject"), NEW_LIST(NEW_LIT(ID2SYM('>'))));
+			/*%
+			$$ = $1;
+			%*/
 		    }
 		| primary_value '[' opt_call_args rbracket
 		    {
@@ -8642,6 +8743,20 @@ parser_yylex(struct parser_params *parser)
 
       case '[':
 	paren_nest++;
+
+	if (peek_n(']', 1)) {
+	    if (peek('+')) { nextc(); nextc(); return tRED_PLUS; }
+	    if (peek('-')) { nextc(); nextc(); return tRED_MINUS; }
+	    if (peek('*')) { nextc(); nextc(); return tRED_MULTI; }
+	    if (peek('/')) { nextc(); nextc(); return tRED_DIV; }
+	    if (peek('|')) { nextc(); nextc(); return tRED_OR; }
+	    if (peek('^')) { nextc(); nextc(); return tRED_XOR; }
+	    if (peek('&')) { nextc(); nextc(); return tRED_AND; }
+	    if (peek('%')) { nextc(); nextc(); return tRED_MOD; }
+	    if (peek('>')) { nextc(); nextc(); return tRED_LT; }
+	    if (peek('<')) { nextc(); nextc(); return tRED_GT; }
+	}
+
 	if (IS_AFTER_OPERATOR()) {
 	    SET_LEX_STATE(EXPR_ARG);
 	    if ((c = nextc()) == ']') {
