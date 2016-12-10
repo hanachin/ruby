@@ -2793,6 +2793,10 @@ primary		: literal
 			$$ = method_add_block($1, $2);
 		    %*/
 		    }
+		| primary_value call_op tLBRACE operation2 '}'
+			{
+				$$ = NEW_QCALL($2, $1, rb_intern("method"), NEW_LIST(NEW_LIT(ID2SYM($4))));
+			}
 		| tLAMBDA lambda
 		    {
 			$$ = $2;
